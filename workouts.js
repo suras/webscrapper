@@ -15,8 +15,8 @@ var client = mysql.createConnection({
 client.connect();
 
 
-//var list_array=["a","b","c","d","e","f","g","h","i","j","k","l","m","n","o","p","q","r","s","t","u","v","x","y","z"];
-var list_array=["z"];
+var list_array=["a","b","c","d","e","f","g","h","i","j","k","l","m","n","o","p","q","r","s","t","u","v","x","y","z"];
+//var list_array=["z"];
 
 function db_insert(title,url,size,bit,time) {
   var sql='insert into files_info (title,url,size,bit_rate,play_time) values ("' + title + '","' + url + '","' + size + '","' + bit + '","' + time + '")';
@@ -156,6 +156,7 @@ var gAsyncSquaringLibrary = {
 };
 
 var album_urls = [];
+var album_names = [];
 
 var AsyncSquaringLibrary = {
   squareExponent: 2,
@@ -214,19 +215,49 @@ var AsyncSquaringLibrary = {
      // End of Each
    });
     //ff
+  },
+  polygon: function(turl, callback){ 
+  	
+  		 request({
+    uri: turl
+    }, function(error, response, body) {
+    	//console.log();
+    var $ = cheerio.load(body);
+    
+    $(".line a").eq(1).each(function(){
+    	
+    	//console.log("this"+$(this).attr('href'));
+    	var album = $(this).text();
+    	album_names.push(album);
+    	//console.log("third"+album);
+    	fetch_song(album);
+    	console.log(album_names);
+    	
+    });
+    callback(null, album_names);
+     // End of Each
+   });
+
   }
 };
 async.map(list_array, AsyncSquaringLibrary.square.bind(AsyncSquaringLibrary), function(err, result1){
   // result is [NaN, NaN, NaN]
   console.log(result1);
   //=== second
-  async.map(result1, AsyncSquaringLibrary.triangle.bind(AsyncSquaringLibrary), function(err, result2){
+  async.map(result1[0], AsyncSquaringLibrary.triangle.bind(AsyncSquaringLibrary), function(err, result2){
   // result is [NaN, NaN, NaN]
   console.log(result2);
+//=third
+      async.map(result2[0], AsyncSquaringLibrary.polygon.bind(AsyncSquaringLibrary), function(err, result3){
+  // result is [NaN, NaN, NaN]
+  console.log(result3);
   
   // This fails because the `this.squareExponent` expression in the square
   // function is not evaluated in the context of AsyncSquaringLibrary, and is
   // therefore undefined.
+});
+
+//=third
 });
   
   
