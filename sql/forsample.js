@@ -2,6 +2,7 @@ var request = require("request");
 var cheerio = require("cheerio");
 var request_uri="http://beemp3.com/artist/";
 var mysql = require('mysql');
+var async = require('async');
 var table="temp_urls";
 
 // Change the Username and Password
@@ -14,8 +15,8 @@ var client = mysql.createConnection({
 client.connect();
 
 
-var list_array=["a","b","c","d","e","f","g","h","i","j","k","l","m","n","o","p","q","r","s","t","u","v","x","y","z"];
-//var list_array=["z","b"];
+//var list_array=["a","b","c","d","e","f","g","h","i","j","k","l","m","n","o","p","q","r","s","t","u","v","x","y","z"];
+var list_array=["z"];
 
 function db_insert(title,url,size,bit,time) {
   var sql='insert into files_info (title,url,size,bit_rate,play_time) values ("' + title + '","' + url + '","' + size + '","' + bit + '","' + time + '")';
@@ -94,7 +95,7 @@ for(index in list_array){
  
 }
 
-var start = get_first_urls();
+//var start = get_first_urls();
 
 function enter_request(surl)
 {
@@ -134,7 +135,7 @@ function get_third_url(third)
     	//console.log("this"+$(this).attr('href'));
     	var album = $(this).text();
     	console.log("third"+album);
-    	fetch_song(album);
+    	//fetch_song(album);
     	
     });
     
@@ -145,3 +146,20 @@ function get_third_url(third)
 }
 
 
+async.map([1, 2, 3], AsyncSquaringLibrary.square, function(err, result){
+  // result is [NaN, NaN, NaN]
+  // This fails because the `this.squareExponent` expression in the square
+  // function is not evaluated in the context of AsyncSquaringLibrary, and is
+  // therefore undefined.
+});
+
+
+var AsyncSquaringLibrary = {
+  squareExponent: 2,
+  square: function(number, callback){ 
+    var result = Math.pow(number, this.squareExponent);
+    setTimeout(function(){
+      callback(null, result);
+    }, 200);
+  }
+};
