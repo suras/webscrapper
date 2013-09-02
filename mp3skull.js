@@ -46,10 +46,10 @@ function fetch_song(song_uri,current_id){
           uri: temp_url,
         }, function(error, response, body) {
           var $ = cheerio.load(body);
-          if($("#main div:nth-child(2) > a").length > 0){
-            request_uri=back_up.split("_").slice(0,2).join("_");
-            // fetch_song(request_uri);
-          }
+          // if($("#main div:nth-child(2) > a").length > 0){
+          //   request_uri=back_up.split("_").slice(0,2).join("_");
+          //   fetch_song(request_uri);
+          // }
           $("#song_html").each(function(){
             if($(this)){
               var link = $(this);
