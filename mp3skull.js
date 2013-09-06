@@ -2,10 +2,10 @@ var request = require("request");
 var cheerio = require("cheerio");
 var request_uri="http://download.abmp3songs.com/english-pop-albums_";
 var mysql = require('mysql');
-var table="temp_urls";
+var table_name="song_list";
 var max_length = 20;
 var current_length = 0;
-
+var total_records = 0;
 // Change the Username and Password
 var db_client = mysql.createConnection({
   host: 'localhost',
@@ -24,7 +24,7 @@ function db_insert(title,url,size,bit,time,current_id) {
       });
  }
  function change_status(current_id) {
-  var sql="update song_list_krish set status = 1 where song_id="+current_id;
+  var sql="update "+table_name+" set status = 1 where song_id="+current_id;
       db_client.query(sql, function(err, res) {
       //client.query(sql);
       });
@@ -53,10 +53,19 @@ function fetch_song(song_uri,current_id){
           //   fetch_song(request_uri);
           // }
           current_length = 0;
+          if($("#song_html").length <= max_length)
+          {
+            total_records += $("#song_html").length;
+          }
+          else
+          {
+            total_records += 20;
+          }
+          console.log($("#song_html").length+"========="+total_records);
           $("#song_html").each(function(){
             if($(this))
             {
-              if(current_length < max_length)
+              if(current_length <= max_length)
               {
                 current_length++;
                 var link = $(this);
@@ -68,9 +77,9 @@ function fetch_song(song_uri,current_id){
                   size=spec_available(specs[1].replace(/(<br)/gm,""));
                   bit=spec_available(specs[2]);
                   time=spec_available(specs[3]); 
-                  console.log(size+'|'+bit+'|'+time+'|'+current_id);
+                  // console.log(size+'|'+bit+'|'+time+'|'+current_id);
                   count_current_id++;
-                  if($("#song_html").length <= count_current_id)
+                  if(count_current_id >= max_length)
                   {
                     count_current_id=0;
                     change_status(current_id);
@@ -85,7 +94,7 @@ function fetch_song(song_uri,current_id){
         });
  }
 
-  db_client.query("SELECT song_id,song FROM song_list_krish where status = 0 LIMIT 0,10000",
+  db_client.query("SELECT song_id,song FROM "+table_name+" LIMIT 0,10",
     function(err, results, fields) {
       if (err) throw err;
         // console.log(results.length);
