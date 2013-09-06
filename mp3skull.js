@@ -3,6 +3,8 @@ var cheerio = require("cheerio");
 var request_uri="http://download.abmp3songs.com/english-pop-albums_";
 var mysql = require('mysql');
 var table="temp_urls";
+var max_length = 20;
+var current_length = 0;
 
 // Change the Username and Password
 var db_client = mysql.createConnection({
@@ -22,7 +24,7 @@ function db_insert(title,url,size,bit,time,current_id) {
       });
  }
  function change_status(current_id) {
-  var sql="update song_list set status = 1 where song_id="+current_id;
+  var sql="update song_list_krish set status = 1 where song_id="+current_id;
       db_client.query(sql, function(err, res) {
       //client.query(sql);
       });
@@ -50,26 +52,32 @@ function fetch_song(song_uri,current_id){
           //   request_uri=back_up.split("_").slice(0,2).join("_");
           //   fetch_song(request_uri);
           // }
+          current_length = 0;
           $("#song_html").each(function(){
-            if($(this)){
-              var link = $(this);
-              var mp3 = $(this).find("a").attr("href");
-              var title = $(this).find("b").text();
-              if (mp3){
-                var time,specs,size,bit;
-                specs=$(this).children(".left").html().replace(/(\r\n|\n|\r|\t)/gm,"").split('>');
-                size=spec_available(specs[1].replace(/(<br)/gm,""));
-                bit=spec_available(specs[2]);
-                time=spec_available(specs[3]); 
-                console.log(size+'|'+bit+'|'+time+'|'+current_id);
-                count_current_id++;
-                if($("#song_html").length <= count_current_id)
-                {
-                	count_current_id=0;
-                	change_status(current_id);
+            if($(this))
+            {
+              if(current_length < max_length)
+              {
+                current_length++;
+                var link = $(this);
+                var mp3 = $(this).find("a").attr("href");
+                var title = $(this).find("b").text();
+                if (mp3){
+                  var time,specs,size,bit;
+                  specs=$(this).children(".left").html().replace(/(\r\n|\n|\r|\t)/gm,"").split('>');
+                  size=spec_available(specs[1].replace(/(<br)/gm,""));
+                  bit=spec_available(specs[2]);
+                  time=spec_available(specs[3]); 
+                  console.log(size+'|'+bit+'|'+time+'|'+current_id);
+                  count_current_id++;
+                  if($("#song_html").length <= count_current_id)
+                  {
+                    count_current_id=0;
+                    change_status(current_id);
+                  }
+                  // console.log(mp3+'|'+size+'|'+bit+'|'+time);
+                  db_insert(title,mp3,size,bit,time,current_id);
                 }
-                // console.log(mp3+'|'+size+'|'+bit+'|'+time);
-                db_insert(title,mp3,size,bit,time,current_id);
               }
             }
           });
@@ -77,19 +85,19 @@ function fetch_song(song_uri,current_id){
         });
  }
 
-	db_client.query("SELECT song_id,song FROM song_list where status = 0 LIMIT 0,50000",
-		function(err, results, fields) {
-			if (err) throw err;
-				// console.log(results.length);
-			for (var index in results) {
-				var song_name=results[index].song.replace(/\s/g,'_').replace(/^\s+|\s+$/g,'');
-				console.log(song_name);
-     		fetch_song(song_name,results[index].song_id);
-     		if(results.length == index+1)
-     		{
-     			console.log("completed list");
-     		}
-			}
-			
-		}
-	); 
+  db_client.query("SELECT song_id,song FROM song_list_krish where status = 0 LIMIT 0,10000",
+    function(err, results, fields) {
+      if (err) throw err;
+        // console.log(results.length);
+      for (var index in results) {
+        var song_name=results[index].song.replace(/\s/g,'_').replace(/^\s+|\s+$/g,'');
+        console.log(song_name);
+        fetch_song(song_name,results[index].song_id);
+        if(results.length == index+1)
+        {
+          console.log("completed list");
+        }
+      }
+      
+    }
+  ); 
